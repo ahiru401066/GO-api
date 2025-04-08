@@ -1,0 +1,12 @@
+services:
+  go:
+  build: ./
+  container_name: go-container
+  volumes:
+   - ./:/app
+  working_dir: /app
+  ports:
+   - "8080:8080"
+  tty: true
+  
+  
