@@ -10,7 +10,7 @@ import (
 type LocationResponse struct {
   Response struct {
     Location []Location `json:"location"`
-  } `json:"response`
+  } `json:"response"`
 }
 
 type Location struct {
