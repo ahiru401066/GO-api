@@ -1,11 +1,23 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-  // "encoding/json"
+	"log"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	slice := []int{1,2,3,4,5}
-	fmt.Println("スライスの要素の数は：",len(slice))
+	dns := "develop:password@tcp(db:3306)/mydb"
+	db, err := sql.Open("mysql", dns)
+	if err != nil{
+		log.Fatalf("接続失敗: %v", err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("Ping失敗： %v", err)
+	}
+	fmt.Println("MySQLに接続成功!")
 }
