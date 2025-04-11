@@ -4,13 +4,22 @@ import (
   "encoding/json"
 	"fmt"
   "io"
+  "math"
 	"net/http"
+  "strconv"
 )
 
-type LocationResponse struct {
+type GeoApiResponse struct {
   Response struct {
     Location []Location `json:"location"`
   } `json:"response"`
+}
+
+type AddressResponse struct {
+  PostalCode string `json:"postal_code"`
+  HitCount int `json:"hit_count"`
+  Address string `json:"address"`
+  FromTokyoDistance float64 `json:"tokyo_sta_distance"`
 }
 
 type Location struct {
@@ -33,6 +42,77 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
   fmt.Fprintln(w, "Hello go!")
 }
 
+func getHitCount(locations []Location)int {
+  return len(locations)
+}
+
+func getCommonAddress(locations []Location)string {
+  if len(locations) == 0 {
+    return ""
+  }
+  pref := locations[0].Prefecture
+  city := locations[0].City
+  townPrefix := locations[0].Town
+
+  for _, loc := range locations[1:] {
+    if loc.Prefecture != pref {
+      pref = ""
+    }
+    if loc.City != city {
+      city = ""
+    }
+    townPrefix = getCommonPrefix(townPrefix, loc.Town)
+  }
+
+  result := pref + city
+  if townPrefix != "" {
+    result += townPrefix
+  }
+  return result
+}
+
+func getCommonPrefix(a, b string) string {
+  arune := []rune(a)
+  brune := []rune(b)
+  minLen := len(arune)
+  if len(brune) < len(arune) {
+    minLen = len(b)
+  } 
+  i := 0
+  for i < minLen && arune[i] == brune[i] {
+    i++
+  }
+  return string(arune[:i])
+}
+
+func getFromTokyoStation(locations []Location) float64 {
+  var maxDistance float64 = 0
+  for _, loc := range locations {
+    x, _ := strconv.ParseFloat(loc.X, 64)
+    y, _ := strconv.ParseFloat(loc.Y, 64)
+    dis := calculateDistanceFromTokyoStation(x, y)
+    if dis > maxDistance {
+      maxDistance = dis
+    }
+  }
+  return maxDistance
+}
+
+func calculateDistanceFromTokyoStation(x, y float64) float64 {
+  const (  
+    R = 6371.0
+    xt = 139.7673068
+    yt = 35.6809591
+  )
+  distance := (math.Pi / 180) * R * math.Sqrt(
+    math.Pow((x - xt) * math.Cos(math.Pi*(y + yt)/360),2) + math.Pow(y - yt, 2),
+  )
+  return RoundToDecimal(distance)
+}
+
+func RoundToDecimal(f float64) float64 {
+  return math.Round(f*10) / 10
+}
 
 func addressHandler(w http.ResponseWriter, r *http.Request) {
   query := r.URL.Query()
@@ -51,13 +131,31 @@ func addressHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-  var locationResponse LocationResponse
-  err = json.Unmarshal(body, &locationResponse)
+  var geoApiResponse GeoApiResponse
+  err = json.Unmarshal(body, &geoApiResponse)
 	if err != nil {
 		fmt.Println("Error unmarshaling JSON:", err)
 	}
 
-  fmt.Fprintln(w,locationResponse)
+  hitCount := getHitCount(geoApiResponse.Response.Location)
+  commonAddress := getCommonAddress(geoApiResponse.Response.Location)
+  DistanceFromTokyo := getFromTokyoStation(geoApiResponse.Response.Location)
+
+  addressResponse := AddressResponse{
+    PostalCode: postalCode,
+    HitCount: hitCount,
+    Address: commonAddress,
+    FromTokyoDistance: DistanceFromTokyo,
+  }
+
+  w.Header().Set("Content-Type", "application/json")
+  jsonAddressResponse, err := json.Marshal(addressResponse)
+  if err != nil {
+    http.Error(w, "Error marshaling response", http.StatusInternalServerError)
+    return 
+  }
+  // fmt.Fprintln(w, string(jsonAddressResponse))
+  w.Write(jsonAddressResponse)
 }
 
 
