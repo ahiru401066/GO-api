@@ -1,6 +1,27 @@
 # GO-api
 2025.04 ~ APIエンドポイントの作成
 
+## フォルダ構成
+<pre>
+GO-api/
+├── go.mod
+├── cmd/
+│   └── api-server/
+│       └── main.go
+├── internal/
+│   ├── handler/
+│   │   ├── hello.go
+│   │   ├── address.go
+│   │   └── access_logs.go
+│   ├── geoapi/
+│   │   └── client.go
+│   ├── db/
+│   │   └── access_log.go
+│   └── model/
+│       └── types.go
+
+</pre>
+
 ## 実装ポイント
 - apiエンドポイントの作成  
 　webサーバーとしてクライアント（ブラウザ）からリクエストを受け取り、レスポンスを返す基礎実装
