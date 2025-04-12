@@ -19,6 +19,7 @@ services:
       MYSQL_DATABASE: mydb
       MYSQL_USER: develop
       MYSQL_PASSWORD: password
+      TZ: Asia/Tokyo
     ports:
       - "3306:3306"
     networks:

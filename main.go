@@ -1,12 +1,16 @@
 package main
 
 import (
+  "database/sql"
   "encoding/json"
 	"fmt"
   "io"
+	"log"
   "math"
 	"net/http"
   "strconv"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type GeoApiResponse struct {
@@ -31,6 +35,15 @@ type Location struct {
 	Y string `json:"y"`
 	Prefecture string `json:"prefecture"`
 	Postal string `json:"postal"`
+}
+
+type AccessLog struct {
+  PostalCode string `json:"postal_code"`
+  RequestCount int `json:"request_count"`
+}
+
+type AccessLogsResponse struct {
+  AccessLogs []AccessLog `json:"access_logs"`
 }
 
 //step.1
@@ -117,6 +130,8 @@ func RoundToDecimal(f float64) float64 {
 func addressHandler(w http.ResponseWriter, r *http.Request) {
   query := r.URL.Query()
   postalCode := query.Get("postal_code")
+
+  addLog(postalCode) //DBにアクセスログの追加
   url := fmt.Sprintf("https://geoapi.heartrails.com/api/json?method=searchByPostal&postal=%s", postalCode)
   req, err := http.NewRequest("GET", url, nil)
   if err != nil {
@@ -154,14 +169,81 @@ func addressHandler(w http.ResponseWriter, r *http.Request) {
     http.Error(w, "Error marshaling response", http.StatusInternalServerError)
     return 
   }
-  // fmt.Fprintln(w, string(jsonAddressResponse))
   w.Write(jsonAddressResponse)
+}
+
+func addLog(postalCode string) {
+  dsn := "develop:password@tcp(db:3306)/mydb"
+  db, err := sql.Open("mysql", dsn)
+  if err != nil {
+    log.Fatal("DB接続エラー：", err)
+  }
+  defer db.Close()
+
+  if err := db.Ping(); err != nil {
+    log.Fatal("DBに接続できません：", err)
+  }
+  _, err = db.Exec("INSERT INTO access_logs (postal_code) VALUES (?)", postalCode)
+  if err != nil {
+    log.Fatal("INSERTエラー：", err)
+  }
+  fmt.Println("データを挿入しました!")
+}
+
+func accessLogsHandler(w http.ResponseWriter, r *http.Request) {
+  if r.Method != http.MethodGet {
+    http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+    return
+  }
+  db, err := sql.Open("mysql", "develop:password@tcp(db:3306)/mydb")
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer db.Close()
+
+  rows, err := db.Query(`
+		SELECT postal_code, COUNT(*) AS request_count
+		FROM access_logs
+		GROUP BY postal_code
+		ORDER BY request_count DESC
+  `)
+
+  if err != nil {
+		http.Error(w, "Failed to query DB", http.StatusInternalServerError)
+		log.Println("DB query error:", err)
+		return
+	}
+	defer rows.Close()
+
+  var accessLogs []AccessLog
+  for rows.Next() {
+    var accessLog AccessLog
+    if err := rows.Scan(&accessLog.PostalCode, &accessLog.RequestCount);  err != nil {
+      http.Error(w, "Failed to read row", http.StatusInternalServerError)
+			log.Println("Row scan error:", err)
+			return
+    }
+    accessLogs = append(accessLogs, accessLog)
+  }
+
+  response := AccessLogsResponse{
+    AccessLogs: accessLogs,
+  }
+
+  w.Header().Set("Content-Type", "application/json")
+  jsonResponse, err := json.Marshal(response)
+  if err != nil {
+    http.Error(w, "Error marshaling response", http.StatusInternalServerError)
+    return    
+  }
+  w.Write(jsonResponse)
 }
 
 
 func main() {
 	http.HandleFunc("/", helloHandler) // Step.1
   http.HandleFunc("/address", addressHandler)
+  http.HandleFunc("/address/access_logs", accessLogsHandler)
 
   fmt.Println("Server is running on :8080...")
   err := http.ListenAndServe(":8080", nil)
