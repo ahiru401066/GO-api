@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 
@@ -9,16 +8,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var dsn = "develop:password@tcp(db:3306)/mydb"
-
 func AddLog(postalCode string) {
-  db, err := sql.Open("mysql", dsn)
-  if err != nil {
-    log.Fatal("DB接続エラー：", err)
-  }
-  defer db.Close()
-
-  _, err = db.Exec("INSERT INTO access_logs (postal_code) VALUES (?)", postalCode)
+  _, err := DB.Exec("INSERT INTO access_logs (postal_code) VALUES (?)", postalCode)
   if err != nil {
     log.Fatal("INSERTエラー：", err)
   }
@@ -26,19 +17,12 @@ func AddLog(postalCode string) {
 }
 
 func GetAccessLogs() (model.AccessLogsResponse, error) {
-	db, err := sql.Open("mysql", dsn)
-  if err != nil {
-    return model.AccessLogsResponse{}, err
-  }
-  defer db.Close()
-
-  rows, err := db.Query(`
+  rows, err := DB.Query(`
 		SELECT postal_code, COUNT(*) AS request_count
 		FROM access_logs
 		GROUP BY postal_code
 		ORDER BY request_count DESC
   `)
-
   if err != nil {
 		return model.AccessLogsResponse{}, err
 	}
