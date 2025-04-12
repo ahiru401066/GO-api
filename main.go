@@ -1,12 +1,16 @@
 package main
 
 import (
+  "database/sql"
   "encoding/json"
 	"fmt"
   "io"
+	"log"
   "math"
 	"net/http"
   "strconv"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type GeoApiResponse struct {
@@ -117,6 +121,8 @@ func RoundToDecimal(f float64) float64 {
 func addressHandler(w http.ResponseWriter, r *http.Request) {
   query := r.URL.Query()
   postalCode := query.Get("postal_code")
+
+  addLog(postalCode) //DBにアクセスログの追加
   url := fmt.Sprintf("https://geoapi.heartrails.com/api/json?method=searchByPostal&postal=%s", postalCode)
   req, err := http.NewRequest("GET", url, nil)
   if err != nil {
@@ -156,6 +162,24 @@ func addressHandler(w http.ResponseWriter, r *http.Request) {
   }
   // fmt.Fprintln(w, string(jsonAddressResponse))
   w.Write(jsonAddressResponse)
+}
+
+func addLog(postalCode string) {
+  dsn := "develop:password@tcp(db:3306)/mydb"
+  db, err := sql.Open("mysql", dsn)
+  if err != nil {
+    log.Fatal("DB接続エラー：", err)
+  }
+  defer db.Close()
+
+  if err := db.Ping(); err != nil {
+    log.Fatal("DBに接続できません：", err)
+  }
+  _, err = db.Exec("INSERT INTO access_logs (postal_code) VALUES (?)", postalCode)
+  if err != nil {
+    log.Fatal("INSERTエラー：", err)
+  }
+  fmt.Println("データを挿入しました!")
 }
 
 
