@@ -4,20 +4,26 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	dns := "develop:password@tcp(db:3306)/mydb"
-	db, err := sql.Open("mysql", dns)
-	if err != nil{
-		log.Fatalf("接続失敗: %v", err)
-	}
-	defer db.Close()
+	dsn := "develop:password@tcp(db:3306)/mydb"
+  db, err := sql.Open("mysql", dsn)
+  if err != nil {
+    log.Fatal("DB接続エラー：", err)
+  }
+  defer db.Close()
 
-	err = db.Ping()
-	if err != nil {
-		log.Fatalf("Ping失敗： %v", err)
-	}
-	fmt.Println("MySQLに接続成功!")
+  if err := db.Ping(); err != nil {
+    log.Fatal("DBに接続できません：", err)
+  }
+
+  postalCode := "1234567"
+  _, err = db.Exec("INSERT INTO access_logs (postal_code) VALUES (?)", postalCode)
+  if err != nil {
+    log.Fatal("INSERTエラー：", err)
+  }
+  fmt.Println("データを挿入しました!")
 }
