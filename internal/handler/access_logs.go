@@ -13,15 +13,15 @@ func AccessLogsHandler(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-	accessLogs, err := db.GetAccessLogs()
+	accessLogs, err := db.ReadAccessLogs()
 	if err != nil {
-		http.Error(w, "Failed to get access logs", http.StatusInternalServerError)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
 		return		
 	}
 
   jsonResponse, err := json.Marshal(accessLogs)
   if err != nil {
-		http.Error(w, "Error marshaling response", http.StatusInternalServerError)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
     return    
   }
 	w.Header().Set("Content-Type", "application/json")
