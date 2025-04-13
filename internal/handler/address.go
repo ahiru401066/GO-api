@@ -1,4 +1,4 @@
-package handler
+package handler 
 
 import (
 	"encoding/json"
@@ -29,14 +29,14 @@ func isValidPostalCode(postalCode string) bool {
 func AddressHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
+		return 
 	}
 
 	// 郵便番号のバリテーション
 	postalCode, err := validatePostalCode(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return 
 	}
 
 	// DBにアクセスログの追加
@@ -49,20 +49,20 @@ func AddressHandler(w http.ResponseWriter, r *http.Request) {
 	locations, err := geoapi.FetchLocations(postalCode)
 	if err != nil {
 		http.Error(w, "Server Error", http.StatusInternalServerError)
-		return
+		return 
 	}
 
 	addressResponse := model.AddressResponse{
-		PostalCode:        postalCode,
-		HitCount:          model.GetHitCount(locations),
-		Address:           model.GetCommonAddress(locations),
+		PostalCode: postalCode,
+		HitCount: model.GetHitCount(locations),
+		Address: model.GetCommonAddress(locations),
 		FromTokyoDistance: model.GetFromTokyoStation(locations),
 	}
 
 	jsonAddressResponse, err := json.Marshal(addressResponse)
 	if err != nil {
 		http.Error(w, "Server Error", http.StatusInternalServerError)
-		return
+    return 
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonAddressResponse)
