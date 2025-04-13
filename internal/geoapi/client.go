@@ -13,15 +13,23 @@ func FetchLocations(postalCode string) ([]model.Location, error) {
 	url := fmt.Sprintf("https://geoapi.heartrails.com/api/json?method=searchByPostal&postal=%s", postalCode)
   req, err := http.NewRequest("GET", url, nil)
   if err != nil {
-    panic(err)
+    return nil, err
   }
+	
   client := &http.Client{}
-	resp, _ := client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("received no-ok status")
+	}
 
   body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var geoApiResponse model.GeoApiResponse

@@ -4,22 +4,26 @@
 ## フォルダ構成
 <pre>
 GO-api/
+├── Dockerfile
+├── docker-compose.yml
 ├── go.mod
+├── go.sum
 ├── cmd/
 │   └── api-server/
 │       └── main.go
-├── internal/
-│   ├── handler/
-│   │   ├── hello.go
-│   │   ├── address.go
-│   │   └── access_logs.go
-│   ├── geoapi/
-│   │   └── client.go
-│   ├── db/
-│   │   └── access_log.go
-│   └── model/
-│       └── types.go
-
+└── internal/
+    ├── db/
+    │   ├── access_log.go
+    │   └── init.go
+    ├── geoapi/
+    │   └── client.go
+    ├── handler/
+    │   ├── access_logs.go
+    │   ├── address.go
+    │   └── hello.go
+    └── model/
+        ├── location_logic.go
+        └── types.go
 </pre>
 
 ## 実装ポイント

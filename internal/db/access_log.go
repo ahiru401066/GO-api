@@ -1,22 +1,19 @@
 package db
 
 import (
-	"fmt"
-	"log"
+	// "fmt"
+	// "log"
 
 	"GO-api/internal/model"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func AddLog(postalCode string) {
+func CreateLog(postalCode string) error {
   _, err := DB.Exec("INSERT INTO access_logs (postal_code) VALUES (?)", postalCode)
-  if err != nil {
-    log.Fatal("INSERTエラー：", err)
-  }
-  fmt.Println("データを挿入しました!")
+  return err
 }
 
-func GetAccessLogs() (model.AccessLogsResponse, error) {
+func ReadAccessLogs() (model.AccessLogsResponse, error) {
   rows, err := DB.Query(`
 		SELECT postal_code, COUNT(*) AS request_count
 		FROM access_logs
