@@ -1,15 +1,15 @@
-package model 
+package model
 
 import (
 	"math"
 	"strconv"
 )
 
-func GetHitCount(locations []Location)int {
+func GetHitCount(locations []Location) int {
 	return len(locations)
 }
 
-func GetCommonAddress(locations []Location)string {
+func GetCommonAddress(locations []Location) string {
 	if len(locations) == 0 {
 		return ""
 	}
@@ -29,7 +29,7 @@ func GetCommonAddress(locations []Location)string {
 
 	result := pref + city
 	if townPrefix != "" {
-    	result += townPrefix
+		result += townPrefix
 	}
 	return result
 }
@@ -39,11 +39,11 @@ func getCommonPrefix(a, b string) string {
 	brune := []rune(b)
 	minLen := len(arune)
 	if len(brune) < len(arune) {
-    	minLen = len(b)
-	} 
+		minLen = len(b)
+	}
 	i := 0
 	for i < minLen && arune[i] == brune[i] {
-    	i++
+		i++
 	}
 	return string(arune[:i])
 }
@@ -55,20 +55,20 @@ func GetFromTokyoStation(locations []Location) float64 {
 		y, _ := strconv.ParseFloat(loc.Y, 64)
 		dis := calculateDistanceFromTokyoStation(x, y)
 		if dis > maxDistance {
-		maxDistance = dis
+			maxDistance = dis
 		}
 	}
 	return roundToDecimal(maxDistance)
 }
 
 func calculateDistanceFromTokyoStation(x, y float64) float64 {
-	const (  
-		R = 6371.0
+	const (
+		R  = 6371.0
 		xt = 139.7673068
 		yt = 35.6809591
 	)
 	distance := (math.Pi / 180) * R * math.Sqrt(
-    	math.Pow((x - xt) * math.Cos(math.Pi*(y + yt)/360),2) + math.Pow(y - yt, 2),
+		math.Pow((x-xt)*math.Cos(math.Pi*(y+yt)/360), 2)+math.Pow(y-yt, 2),
 	)
 	return distance
 }

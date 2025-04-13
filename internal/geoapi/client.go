@@ -12,11 +12,11 @@ import (
 func FetchLocations(postalCode string) ([]model.Location, error) {
 	//リクエストの作成
 	url := fmt.Sprintf("https://geoapi.heartrails.com/api/json?method=searchByPostal&postal=%s", postalCode)
-	req, err := http.NewRequest("GET", url, nil) 
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-    	return nil, err
+		return nil, err
 	}
-	
+
 	//　リクエストの送信とレスポンスの受信
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -36,7 +36,7 @@ func FetchLocations(postalCode string) ([]model.Location, error) {
 
 	var geoApiResponse model.GeoApiResponse
 	if err := json.Unmarshal(body, &geoApiResponse); err != nil {
-    return nil, err
+		return nil, err
 	}
 	return geoApiResponse.Response.Location, nil
 }
