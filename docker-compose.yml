@@ -9,6 +9,8 @@ services:
     tty: true
     networks:
       - back-db
+    depends_on:
+      - db
   db:
     image: mysql
     container_name: db-container
