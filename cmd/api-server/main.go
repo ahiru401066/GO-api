@@ -15,12 +15,13 @@ func main() {
   }
   defer db.DB.Close()
 
-	http.HandleFunc("/", handler.HelloHandler)
-  http.HandleFunc("/address", handler.AddressHandler)
-  http.HandleFunc("/address/access_logs", handler.AccessLogsHandler)
+  mux := http.NewServeMux()
+	mux.HandleFunc("/", handler.HelloHandler)
+  mux.HandleFunc("/address", handler.AddressHandler)
+  mux.HandleFunc("/address/access_logs", handler.AccessLogsHandler)
 
   fmt.Println("Server is running on :8080...")
-  if err := http.ListenAndServe(":8080", nil); err != nil {
-    panic(err)
+  if err := http.ListenAndServe(":8080", mux); err != nil {
+    log.Fatal(err)
   }
 }
