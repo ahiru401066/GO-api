@@ -8,7 +8,7 @@ import (
 func HelloHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	  return
+		return
 	}
 	fmt.Fprintln(w, "Hello go!")
 }

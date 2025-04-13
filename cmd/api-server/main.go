@@ -16,7 +16,7 @@ func main() {
   defer db.DB.Close()
 
   mux := http.NewServeMux()
-	mux.HandleFunc("/", handler.HelloHandler)
+  mux.HandleFunc("/", handler.HelloHandler)
   mux.HandleFunc("/address", handler.AddressHandler)
   mux.HandleFunc("/address/access_logs", handler.AccessLogsHandler)
 

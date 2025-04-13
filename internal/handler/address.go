@@ -11,9 +11,10 @@ import (
 	"GO-api/internal/model"
 )
 
+// バリデーション処理
 func validatePostalCode(r *http.Request) (string, error) {
 	query := r.URL.Query()
-  postalCode := query.Get("postal_code")
+	postalCode := query.Get("postal_code")
 	if !isValidPostalCode(postalCode) {
 		return "", fmt.Errorf("Bad Request")
 	}
@@ -32,7 +33,7 @@ func AddressHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 郵便番号のバリテーション
-  postalCode, err := validatePostalCode(r)
+	postalCode, err := validatePostalCode(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return 
@@ -58,11 +59,11 @@ func AddressHandler(w http.ResponseWriter, r *http.Request) {
 		FromTokyoDistance: model.GetFromTokyoStation(locations),
 	}
 
-  jsonAddressResponse, err := json.Marshal(addressResponse)
-  if err != nil {
+	jsonAddressResponse, err := json.Marshal(addressResponse)
+	if err != nil {
 		http.Error(w, "Server Error", http.StatusInternalServerError)
     return 
-  }
+	}
 	w.Header().Set("Content-Type", "application/json")
-  w.Write(jsonAddressResponse)
+	w.Write(jsonAddressResponse)
 }
