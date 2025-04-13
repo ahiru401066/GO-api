@@ -27,11 +27,11 @@ func ReadAccessLogs() (model.AccessLogsResponse, error) {
 
 	var accessLogs []model.AccessLog
 	for rows.Next() {
-    var accessLog model.AccessLog
-    if err := rows.Scan(&accessLog.PostalCode, &accessLog.RequestCount);  err != nil {
+		var accessLog model.AccessLog
+		if err := rows.Scan(&accessLog.PostalCode, &accessLog.RequestCount); err != nil {
 			return model.AccessLogsResponse{}, err
-    }
-    accessLogs = append(accessLogs, accessLog)
+		}
+		accessLogs = append(accessLogs, accessLog)
 	}
 	return model.AccessLogsResponse{AccessLogs: accessLogs}, nil
 }
